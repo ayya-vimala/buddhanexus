@@ -106,15 +106,18 @@ export const TextSegment = ({
   if (!data) return null;
 
   // segnr also contains the file name - we need to strip it away
-  const [, segmentNumber] = data.segmentNumber.split(":");
+  const [fileName, segmentNumber] = data.segmentNumber.split(":");
 
   return (
     <div className={styles.segmentWrapper}>
-      <span
+      <a
         className={`${styles.segmentNumber} ${
           isSegmentSelected && styles["segmentNumber--selected"]
         } ${!shouldShowSegmentNumbers && styles["segmentNumber--hidden"]}`}
         data-segmentnumber={segmentNumber}
+        href={`/db/${dbLanguage}/${fileName}/text?active_segment=${data.segmentNumber}`}
+        target="_blank"
+        rel="noreferrer noopenner"
       />
 
       {data.segmentText.map(({ text, highlightColor, matches }, i) => {
