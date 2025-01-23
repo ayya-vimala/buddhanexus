@@ -100,21 +100,16 @@ def get_cat_from_segmentnr(segmentnr):
     return segmentnr.split("_")[1]
 
 
-def test_collection_category_file(inputstring):
+def test_collection(inputstring):
     """
-    tests if the inputstring is a collection, category or file
+    tests if the inputstring is a collection
     """
     collection = False
-    category = False
-    file = False
-    language_prefixes = ["PA_", "BO_", "SA_", "ZH_"]
-    if inputstring.startswith(tuple(language_prefixes)):
-        file = True
-    elif inputstring[0].isupper() and inputstring[1].islower():
+
+    if inputstring[0].isupper() and inputstring[1].islower():
         collection = True
-    else:
-        category = True
-    return collection, category, file
+
+    return collection
 
 
 def arrange_filter_data(filters):

@@ -4,7 +4,7 @@ from ..queries import visual_view_queries
 from typing import Any
 from .models.visual_view_models import *
 from ..cache_config import cached_endpoint, CACHE_TIMES
-from ..utils import test_collection_category_file
+from ..utils import test_collection
 
 router = APIRouter()
 
@@ -18,8 +18,9 @@ async def get_visual_graph_data(input: VisualViewInput) -> Any:
     **Input is:**
 
     *inquiry*: A string with the required inquiry collection ("Suttas-Early-1"), category ("dn") or file ("PA_dn_1")
+               (only one possibility)
 
-    *hit*: And array with the required hit collection(s) ["Suttas-Early-1","Vinaya"]
+    *hit*: And array with the required hit collection(s) and/or category(ies) ["Suttas-Early-1","Vinaya", "an", "mn"]
 
     *language*: pa, sa, bo or zh
 
@@ -50,21 +51,8 @@ async def get_visual_graph_data(input: VisualViewInput) -> Any:
     Note that if a collection or file is selected, the total number of pages is always 1.
 
     """
-    collection_test, category_test, file_test = test_collection_category_file(
-        input.inquiry
-    )
 
-    if file_test:
-        query_visual_result = execute_query(
-            visual_view_queries.QUERY_VISUAL_FILE_VIEW,
-            bind_vars={
-                "inquiry_collection": input.inquiry,
-                "hit_collection": input.hit,
-                "lang": input.language,
-            },
-        )
-
-    elif collection_test:
+    if test_collection(input.inquiry):
         query_visual_result = execute_query(
             visual_view_queries.QUERY_VISUAL_COLLECTION_VIEW,
             bind_vars={
