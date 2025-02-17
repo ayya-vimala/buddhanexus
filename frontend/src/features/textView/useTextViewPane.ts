@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useStandardViewBaseQueryParams } from "@components/hooks/groupedQueryParams";
+import {
+  useLeftPaneActiveMatchParam,
+  useRightPaneActiveMatchParam,
+} from "@components/hooks/params";
 import { useDbRouterParams } from "@components/hooks/useDbRouterParams";
 import { useSetDbViewFromPath } from "@components/hooks/useDbView";
 import { DEFAULT_PARAM_VALUES } from "@features/SidebarSuite/uiSettings/config";
@@ -16,6 +20,7 @@ interface UseTextPageReturn {
   firstItemIndex: number;
   handleFetchingNextPage: () => Promise<void>;
   handleFetchingPreviousPage: () => Promise<void>;
+  clearActiveMatch: () => Promise<void>;
   isError: boolean;
   isLoading: boolean;
   isFetching: boolean;
@@ -37,6 +42,10 @@ export function useTextViewPane({
   const requestBodyBase = useStandardViewBaseQueryParams();
 
   const { fileName: fileNameUrlParam } = useDbRouterParams();
+  const [leftPaneActiveMatchId, setLeftPaneActiveMatchId] =
+    useLeftPaneActiveMatchParam();
+  const [rightPaneActiveMatchId, setRightPaneActiveMatchId] =
+    useRightPaneActiveMatchParam();
 
   const [fileNameFromActiveSegment] = activeSegment.split(":");
 
@@ -98,10 +107,22 @@ export function useTextViewPane({
       // We may need to revisit after moving to the Next.js App Router
 
       // if the `active_segment` param was already sent for this segment,
-      // don't send it anymore.
-      const activeSegmentParam = hasSegmentBeenSelected(activeSegment)
+      // don't send it anymore. This is how the BE works with pagination, otherwise it will start from page 0 again.
+      const hasActiveSegmentBeenSelected =
+        hasSegmentBeenSelected(activeSegment);
+
+      const activeSegmentParam = hasActiveSegmentBeenSelected
         ? DEFAULT_PARAM_VALUES.active_segment
         : activeSegment;
+
+      let activeMatchIdParam: string;
+      if (hasActiveSegmentBeenSelected) {
+        activeMatchIdParam = DEFAULT_PARAM_VALUES.active_match;
+      } else {
+        activeMatchIdParam = isRightPane
+          ? rightPaneActiveMatchId
+          : leftPaneActiveMatchId;
+      }
 
       return DbApi.TextView.call({
         ...requestBodyBase,
@@ -111,6 +132,7 @@ export function useTextViewPane({
             ? fileNameUrlParam
             : (fileNameFromActiveSegment ?? ""),
         active_segment: activeSegmentParam,
+        active_match_id: activeMatchIdParam,
 
         filters: requestFilters,
       });
@@ -192,11 +214,20 @@ export function useTextViewPane({
     [data?.pages],
   );
 
+  const clearActiveMatch = useCallback(async () => {
+    if (isRightPane) {
+      await setRightPaneActiveMatchId(DEFAULT_PARAM_VALUES.active_match);
+    } else {
+      await setLeftPaneActiveMatchId(DEFAULT_PARAM_VALUES.active_match);
+    }
+  }, [isRightPane, setLeftPaneActiveMatchId, setRightPaneActiveMatchId]);
+
   return {
     allParallels,
     firstItemIndex,
     handleFetchingNextPage,
     handleFetchingPreviousPage,
+    clearActiveMatch,
     isError,
     isFetching,
     isFetchingNextPage,

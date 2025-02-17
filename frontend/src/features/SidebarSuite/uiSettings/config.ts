@@ -91,6 +91,8 @@ export const allUIComponentParamNames: AllUIComponentParamNames = {
   collection: "collection",
   hit_collections: "hit_collections",
   active_match_id: "active_match_id",
+  left_pane_active_match: "left_pane_active_match",
+  right_pane_active_match: "right_pane_active_match",
 };
 
 export const DEFAULT_LANGUAGE = "all";
@@ -107,6 +109,7 @@ export const DEFAULT_PARAM_VALUES = {
   sort_method: "position",
   language: DEFAULT_LANGUAGE,
   active_segment: "none",
+  active_match: "",
 } as const;
 
 export const MIN_PAR_LENGTH_VALUES: Record<DbLanguage, number> = {

@@ -16,6 +16,8 @@ type FeStateParams =
   | "active_segment_index"
   | "collection"
   | "hit_collections"
+  | "left_pane_active_match"
+  | "right_pane_active_match"
   | "right_pane_active_segment"
   | "right_pane_active_segment_index";
 

@@ -1,15 +1,9 @@
 import React, { useCallback, useEffect } from "react";
 import { useTranslation } from "next-i18next";
-import {
-  textViewIsMiddlePanePointingLeftAtom,
-  textViewRightPaneFileNameAtom,
-} from "@atoms";
+import { textViewRightPaneFileNameAtom } from "@atoms";
 import { DbLanguageChip } from "@components/common/DbLanguageChip";
 import { Link } from "@components/common/Link";
-import {
-  useActiveSegmentParam,
-  useRightPaneActiveSegmentParam,
-} from "@components/hooks/params";
+import { useRightPaneActiveSegmentParam } from "@components/hooks/params";
 import { createURLToSegment } from "@features/textView/utils";
 import CopyIcon from "@mui/icons-material/ContentCopy";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
@@ -26,7 +20,7 @@ import {
 } from "@mui/material";
 import type { APISchemas } from "@utils/api/types";
 import { DbLanguage } from "@utils/api/types";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useSetAtom } from "jotai";
 
 import { ParallelSegmentText } from "./ParallelSegmentText";
 
@@ -40,9 +34,12 @@ interface ParallelSegmentProps {
   text: APISchemas["FullText"][];
   textSegmentNumber: string;
   textSegmentNumberRange: string;
+  // component becomes active when this match is selected
+  segmentIdToMatch?: string;
 
   score?: number;
   onHover?: (parallelId: string) => void;
+  onClick?: (parallelId: string, textSegmentNumber: string) => void;
 }
 
 export const ParallelSegment = ({
@@ -56,20 +53,13 @@ export const ParallelSegment = ({
   displayName,
   language,
   onHover,
+  segmentIdToMatch,
+  onClick,
 }: ParallelSegmentProps) => {
   const { t } = useTranslation();
 
-  const [rightPaneActiveSegmentId, setRightPaneActiveSegmentId] =
-    useRightPaneActiveSegmentParam();
-  const [activeSegmentId, setActiveSegmentId] = useActiveSegmentParam();
-  const setRightPaneFileName = useSetAtom(textViewRightPaneFileNameAtom);
-
-  const isMiddlePanePointingLeft = useAtomValue(
-    textViewIsMiddlePanePointingLeftAtom,
-  );
-
+  const isActive = segmentIdToMatch === textSegmentNumber;
   const dbLanguageName = t(`language.${language}`);
-
   const infoToCopy = `${textSegmentNumberRange}: ${displayName}`;
 
   // Example of copied data: dn1:1.1.1_0–1.1.2_0: Brahmajāla Sutta
@@ -77,30 +67,18 @@ export const ParallelSegment = ({
     await navigator.clipboard.writeText(infoToCopy);
   }, [infoToCopy]);
 
-  const openTextPane = useCallback(async () => {
-    if (isMiddlePanePointingLeft) {
-      await setActiveSegmentId(textSegmentNumber);
-    } else {
-      await setRightPaneActiveSegmentId(textSegmentNumber);
-    }
-  }, [
-    isMiddlePanePointingLeft,
-    setActiveSegmentId,
-    setRightPaneActiveSegmentId,
-    textSegmentNumber,
-  ]);
-
   const urlToSegment = createURLToSegment({
     language,
     segmentNumber: textSegmentNumber,
   });
 
-  const isActive = isMiddlePanePointingLeft
-    ? activeSegmentId === textSegmentNumber
-    : rightPaneActiveSegmentId === textSegmentNumber;
-
+  // [warning] breaking separation of concerns a bit, since this data is only available here atm.
+  // Only for the text view. Update the right pane title.
+  const [rightPaneActiveSegmentId] = useRightPaneActiveSegmentParam();
+  const setRightPaneFileName = useSetAtom(textViewRightPaneFileNameAtom);
   useEffect(
     function updateRightPaneFileName() {
+      if (!segmentIdToMatch) return;
       if (rightPaneActiveSegmentId === textSegmentNumber) {
         setRightPaneFileName(displayName);
       }
@@ -108,6 +86,7 @@ export const ParallelSegment = ({
     [
       displayName,
       rightPaneActiveSegmentId,
+      segmentIdToMatch,
       setRightPaneFileName,
       textSegmentNumber,
     ],
@@ -211,7 +190,7 @@ export const ParallelSegment = ({
 
         <Divider />
 
-        <CardContent onClick={openTextPane}>
+        <CardContent onClick={() => id && onClick?.(id, textSegmentNumber)}>
           <ParallelSegmentText text={text} />
         </CardContent>
       </Card>

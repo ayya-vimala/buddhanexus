@@ -8,17 +8,17 @@ function parseTextViewParallelsData(
   return {
     page: data.page,
     totalPages: data.total_pages,
-    items: data.items?.map((segment) => {
-      const { segnr, segtext } = segment;
-      return {
-        segmentNumber: segnr,
-        segmentText: segtext.map(({ text, highlightColor, matches }) => ({
+    items: data.items?.map(({ segnr, segtext }) => ({
+      segmentNumber: segnr,
+      segmentText: segtext.map(
+        ({ text, highlightColor, matches, is_active_match }) => ({
           text,
           highlightColor,
           matches,
-        })),
-      };
-    }),
+          isActiveMatch: is_active_match,
+        }),
+      ),
+    })),
   };
 }
 

@@ -115,6 +115,20 @@ export const useRightPaneActiveSegmentIndexParam = () => {
   );
 };
 
+export const useLeftPaneActiveMatchParam = () => {
+  return useQueryState(
+    allUIComponentParamNames.active_match_id,
+    parseAsString.withDefault(DEFAULT_PARAM_VALUES.active_match),
+  );
+};
+
+export const useRightPaneActiveMatchParam = () => {
+  return useQueryState(
+    allUIComponentParamNames.right_pane_active_match,
+    parseAsString.withDefault(DEFAULT_PARAM_VALUES.active_match),
+  );
+};
+
 const parseAsSortMethod = parseAsStringLiteral(sortMethods);
 
 export const useSortMethodParam = () => {
